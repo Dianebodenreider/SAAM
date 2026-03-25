@@ -173,3 +173,41 @@ for y in range(START_ALLOC_YEAR, 2025):
     print(f"  {y:<8} {len(investment_sets[y]):>10}")
 
 print("\n✓ Nettoyage terminé. Prêt pour la Partie I.")
+
+# ──────────────────────────────────────────────────────────────
+# EXPORT : Sauvegarde des données nettoyées en Excel
+# ──────────────────────────────────────────────────────────────
+print("\nExport des données nettoyées...")
+
+out_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "SAAM_GroupeJ_Cleaned.xlsx")
+
+with pd.ExcelWriter(out_path, engine="openpyxl") as writer:
+
+    ret_export = ret_m.copy()
+    ret_export.columns = [str(c.date()) for c in ret_export.columns]
+    ret_export.to_excel(writer, sheet_name="Returns_Monthly")
+
+    ri_export = ri_m_clean.copy()
+    ri_export.columns = [str(c.date()) for c in ri_export.columns]
+    ri_export.to_excel(writer, sheet_name="RI_Monthly_Clean")
+
+    mv_export = mv_m.copy()
+    mv_export.columns = [str(c.date()) for c in mv_export.columns]
+    mv_export.to_excel(writer, sheet_name="MV_Monthly")
+
+    mv_y.to_excel(writer, sheet_name="MV_Annual")
+    sc1_filled.to_excel(writer, sheet_name="CO2_Scope1_Filled")
+    sc2_filled.to_excel(writer, sheet_name="CO2_Scope2_Filled")
+    co2_total.to_excel(writer, sheet_name="CO2_Total_Sc1+Sc2")
+    rev_y_filled.to_excel(writer, sheet_name="Revenue_Annual_Filled")
+
+    rf_df = rf_raw.reset_index()
+    rf_df.columns = ["Date", "RF"]
+    rf_df.to_excel(writer, sheet_name="Risk_Free_Rate", index=False)
+
+    inv_rows = [{"Year": y, "ISIN": isin} for y, isins in investment_sets.items() for isin in isins]
+    pd.DataFrame(inv_rows).to_excel(writer, sheet_name="Investment_Sets", index=False)
+
+    static[static["ISIN"].isin(universe_isins)].to_excel(writer, sheet_name="Static_AMER_EUR", index=False)
+
+print(f"✓ Fichier sauvegardé : SAAM_GroupeJ_Cleaned.xlsx")
